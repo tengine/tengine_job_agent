@@ -17,8 +17,8 @@ Jeweler::Tasks.new do |gem|
   gem.name = "tengine_job_agent"
   gem.homepage = "http://github.com/akm/tengine_job_agent"
   gem.license = "MIT"
-  gem.summary = %Q{TODO: one-line summary of your gem}
-  gem.description = %Q{TODO: longer description of your gem}
+  gem.summary = %Q{tengine_job_agent invoke job, watches it and notify its finish to tengine server}
+  gem.description = %Q{tengine_job_agent works with tengine_job}
   gem.email = "akima@nautilus-technologies.com"
   gem.authors = ["akima"]
   # dependencies defined in Gemfile
