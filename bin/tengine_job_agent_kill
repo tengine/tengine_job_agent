@@ -1,0 +1,23 @@
+#!/usr/bin/env ruby
+# -*- coding: utf-8 -*-
+
+target_pid = ARGV.shift
+signals = ARGV
+interval = 5 # seconds
+
+first_time = true
+signals.each do |signal|
+  begin
+    result = Process.kill(signal, -1 * target_pid) # killing process group
+    puts "result: #{result.inspect}"
+    first_time = false
+  rescue Errno::ESRCH
+    if first_time
+      puts "#{$!.message}."
+    else
+      # previous signal must have succeeded to kill the process
+      break
+    end
+  end
+  sleep(interval)
+end
