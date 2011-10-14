@@ -4,15 +4,15 @@
 # -*- encoding: utf-8 -*-
 
 Gem::Specification.new do |s|
-  s.name = %q{tengine_job_agent}
-  s.version = "0.0.1"
+  s.name = "tengine_job_agent"
+  s.version = "0.0.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = [%q{akima}]
-  s.date = %q{2011-10-05}
-  s.description = %q{tengine_job_agent works with tengine_job}
-  s.email = %q{akima@nautilus-technologies.com}
-  s.executables = [%q{tengine_job_agent_kill}, %q{tengine_job_agent_run}, %q{tengine_job_agent_watchdog}]
+  s.authors = ["akima"]
+  s.date = "2011-10-14"
+  s.description = "tengine_job_agent works with tengine_job"
+  s.email = "akima@nautilus-technologies.com"
+  s.executables = ["tengine_job_agent_kill", "tengine_job_agent_run", "tengine_job_agent_watchdog"]
   s.extra_rdoc_files = [
     "LICENSE.txt",
     "README.rdoc"
@@ -36,16 +36,16 @@ Gem::Specification.new do |s|
     "spec/config/tengine_job_agent.yml",
     "spec/log/.gitignore",
     "spec/spec_helper.rb",
+    "spec/tengine_job_agent/run_spec.rb",
     "spec/tengine_job_agent/scripts/echo_foo.sh",
     "spec/tengine_job_agent/scripts/sleep.sh",
-    "spec/tengine_job_agent_spec.rb",
     "tengine_job_agent.gemspec"
   ]
-  s.homepage = %q{http://github.com/akm/tengine_job_agent}
-  s.licenses = [%q{MIT}]
-  s.require_paths = [%q{lib}]
-  s.rubygems_version = %q{1.8.6}
-  s.summary = %q{tengine_job_agent invoke job, watches it and notify its finish to tengine server}
+  s.homepage = "http://github.com/akm/tengine_job_agent"
+  s.licenses = ["MIT"]
+  s.require_paths = ["lib"]
+  s.rubygems_version = "1.8.10"
+  s.summary = "tengine_job_agent invoke job, watches it and notify its finish to tengine server"
 
   if s.respond_to? :specification_version then
     s.specification_version = 3
