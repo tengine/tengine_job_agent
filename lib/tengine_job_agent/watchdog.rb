@@ -48,15 +48,15 @@ class TengineJobAgent::Watchdog
   end
 
   def fire_finished(pid, process_status)
-    exit_code = process_status.exitstatus # killされた場合にnilの可能性がある
-    level_key = exit_code == 0 ? :info : :error
-    @logger.info("fire_finished starting #{pid} #{level_key}(#{exit_code})")
+    exit_status = process_status.exitstatus # killされた場合にnilの可能性がある
+    level_key = exit_status == 0 ? :info : :error
+    @logger.info("fire_finished starting #{pid} #{level_key}(#{exit_status})")
     event_properties = {
       "root_jobnet_id"   => ENV['MM_ROOT_JOBNET_ID'],
       "target_jobnet_id" => ENV['MM_TARGET_JOBNET_ID'],
-      "job_id"           => ENV['MM_ACTUAL_JOB_ID'],
+      "target_job_id"    => ENV['MM_ACTUAL_JOB_ID'],
       "pid" => pid,
-      "exit_code" => exit_code,
+      "exit_status" => exit_status,
       "command"   => [@program, @args].flatten.join(" "),
     }
     if level_key == :error

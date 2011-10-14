@@ -45,8 +45,7 @@ class TengineJobAgent::Run
     end
   end
 
-  # IO.pipeでパイプを使って起動したプロセスに標準出力用／標準エラー出力用のIOをそれぞれ渡して、
-  # 起動したプロセスのPIDとその入力用のIOをそれぞれ戻り値として返します
+  # 引数に@pid_pathを渡してwatchdogを起動します。戻り値は起動したwatchdogのPIDです
   def spawn_watchdog
     @logger.info("pid file creating: #{@pid_path}")
     File.open(@pid_path, "w"){ } # ファイルをクリア
