@@ -11,7 +11,9 @@ describe TengineJobAgent::Run do
   end
 
   subject do
-    TengineJobAgent::Run.new(@logger, %w"scripts/echo_foo.sh", @config)
+    Dir.chdir File.expand_path("../..", __FILE__) do
+      TengineJobAgent::Run.new(@logger, %w"scripts/echo_foo.sh", @config)
+    end
   end
 
   it { should_not be_nil }
@@ -77,4 +79,9 @@ describe TengineJobAgent::Run do
     end
   end
 
+  describe "#initialize" do
+    it "第一引数にlogger"
+    it "第二引数は起動するプロセスへの引数の配列"
+    it "第三引数はconfig"
+  end
 end

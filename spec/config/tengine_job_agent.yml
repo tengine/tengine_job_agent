@@ -1,5 +1,5 @@
 timeout: 1
-log_dir: "spec/log"
+log_dir: "log"
 connection:
   host: 'localhost'
   port: 5672

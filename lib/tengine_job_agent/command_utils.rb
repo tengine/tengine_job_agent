@@ -17,11 +17,10 @@ module TengineJobAgent::CommandUtils
       config = load_config
       logger = new_logger(config['log_dir'])
       begin
-        new(logger, args, config).process
-        return 0
+        return new(logger, args, config).process
       rescue Exception => e
         logger.error("error: [#{e.class.name}] #{e.message}\n  " << e.backtrace.join("\n"))
-        return 1
+        return false
       end
     end
 
