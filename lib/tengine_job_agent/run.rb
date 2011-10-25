@@ -35,7 +35,7 @@ class TengineJobAgent::Run
             msg = f.read
             @logger.error("error occurred:\n#{msg}")
             @error_output.puts(msg)
-            exit!(1)
+            return false
           end
         end
       end
@@ -52,7 +52,7 @@ class TengineJobAgent::Run
     @logger.info("pid file created: #{@pid_path}")
     # http://doc.ruby-lang.org/ja/1.9.2/method/Kernel/m/spawn.html を参考にしています
     args = @args # + [{:out => stdout_w}] #, :err => stderr_w}]
-    watchdog = File.expand_path("tengine_job_agent_watchdog", File.dirname($PROGRAM_NAME))
+    watchdog = File.expand_path("../../bin/tengine_job_agent_watchdog", File.dirname(__FILE__))
     @logger.info("spawning watchdog: #{@pid_path}")
     pid = Process.spawn(watchdog, @pid_path, *args)
     @logger.info("spawned watchdog: #{pid}")

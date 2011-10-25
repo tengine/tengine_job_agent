@@ -14,16 +14,66 @@ describe TengineJobAgent::Run do
     TengineJobAgent::Run.new(@logger, %w"scripts/echo_foo.sh", @config)
   end
 
-  context "正常起動" do
-    it do
-      Process.stub(:spawn).with(anything, anything,anything).and_return(0)
-      STDOUT.stub(:puts).with(an_instance_of(String))
-      f = mock(File.open("/dev/null"))
-      f.stub(:gets).and_return("0\n")
+  it { should_not be_nil }
+
+  describe "#process" do
+
+    let(:f) { mock(File.open("/dev/null")) }
+
+    before do
+      subject.stub(:spawn_watchdog).and_return mock(Numeric.new)
+      f
       File.stub(:open).with(an_instance_of(String), "r").and_yield(f)
       File.stub(:open).with(an_instance_of(String), "w")
-      should_not be_nil
-      subject.process.should == true
+    end
+
+    context "正常起動" do
+      it "EXIT_SUCCESS" do
+        STDOUT.stub(:puts).with(an_instance_of(String))
+        f.stub(:gets).and_return("0\n")
+        subject.process.should == true
+      end
+    end
+
+    context "spawnできない" do
+      it "EXIT_FAILURE" do      
+        STDERR.stub(:puts) do |arg|
+          arg.should =~ /foo bar/
+        end
+        f.stub(:read).and_return("foo bar")
+        f.stub(:gets).and_return("foo bar")
+        f.stub(:rewind)
+        subject.process.should == false
+      end
+    end
+
+    context "timeout" do
+      it "EXIT_FAILURE" do
+        f.stub(:gets)
+        lambda { subject.process }.should raise_exception(Timeout::Error)
+      end
+    end
+  end
+
+  describe "#spawn_watchdog" do
+    it "tengine_job_agent_watchdogを起動する" do
+      watchdog = File.expand_path("../../bin/tengine_job_agent_watchdog", File.dirname(__FILE__))
+      Process.should_receive(:spawn).with(watchdog, an_instance_of(String), anything)
+      subject.spawn_watchdog
+    end
+
+    it "pidを返す" do
+      pid = mock(Numeric.new)
+      Process.stub(:spawn).with(anything, anything, anything).and_return(pid)
+      subject.spawn_watchdog.should == pid
+    end
+
+    it "終了を待たない" do
+      Process.stub(:spawn).with(anything, anything, anything)
+      Process.should_not_receive :wait
+      Process.should_not_receive :waitpid
+      Process.should_not_receive :waitpid2
+      subject.spawn_watchdog
     end
   end
 
