@@ -41,6 +41,9 @@ class TengineJobAgent::Watchdog
     @logger.info("detaching process PID: #{pid}")
     watch_thread = Process.detach(pid)
     @logger.info("waiting process finished")
+# ここになにか書く。
+
+
     # TODO detachが完了した後から、定期的に running.process.job.tengine イベントを送信するようにします。
     process_status = watch_thread.value # Thread#valueは、スレッドが終了するのを待って、そのブロックが返した値を返します
     @logger.info("process finished: " << process_status.exitstatus.inspect)
