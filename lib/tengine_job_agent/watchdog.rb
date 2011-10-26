@@ -55,6 +55,7 @@ class TengineJobAgent::Watchdog
     level_key = exit_status == 0 ? :info : :error
     @logger.info("fire_finished starting #{pid} #{level_key}(#{exit_status})")
     event_properties = {
+      "execution_id"     => ENV['MM_SCHEDULE_ID'],
       "root_jobnet_id"   => ENV['MM_ROOT_JOBNET_ID'],
       "target_jobnet_id" => ENV['MM_TARGET_JOBNET_ID'],
       "target_job_id"    => ENV['MM_ACTUAL_JOB_ID'],

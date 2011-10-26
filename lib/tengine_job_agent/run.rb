@@ -19,7 +19,7 @@ class TengineJobAgent::Run
     line = nil
     process_spawned = false
     begin
-      timeout(@config['timeout']) do #タイムアウト(秒)
+      timeout(@timeout) do #タイムアウト(秒)
         @logger.info("watchdog process spawning for #{@args.join(' ')}")
         pid = spawn_watchdog # watchdogプロセスをspawnで起動
         @logger.info("watchdog process spawned. PID: #{pid.inspect}")
