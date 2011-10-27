@@ -23,9 +23,38 @@ describe TengineJobAgent::CommandUtils do
         end
       end
 
-      it "./tengine_job_agent.ymlを読む"
-      it "./config/tengine_job_agent.ymlを読む"
-      it "/etc/tengine_job_agent.ymlを読む"
+      it "./tengine_job_agent.ymlを読む" do
+        Dir.mktmpdir do |nam|
+          Dir.chdir nam do
+            File.open("tengine_job_agent.yml", "wb") {|f| f.puts "foo: bar\n" }
+            subject.load_config.should == { "foo" => "bar" }
+          end
+        end
+      end
+
+      it "./config/tengine_job_agent.ymlを読む" do
+        Dir.mktmpdir do |nam|
+          Dir.chdir nam do
+            Dir.mkdir "config"
+            File.open("config/tengine_job_agent.yml", "wb") {|f| f.puts "foo: bar\n" }
+            subject.load_config.should == { "foo" => "bar" }
+          end
+        end
+      end
+
+      it "/etc/tengine_job_agent.ymlを読む" do
+        begin
+          if File.exist? "/etc/tengine_job_agent.yml"
+            obj = YAML.load_file "/etc/tengine_job_agent.yml"
+            subject.load_config.should == obj
+          else
+            File.open("/etc/tengine_job_agent.yml", "wb") {|f| f.puts "foo: bar\n" }
+            subject.load_config.should == { "foo" => "bar" }
+          end
+        rescue Errno::EACCES
+          pending $!.message
+        end
+      end
     end
 
     describe "#new_logger" do
