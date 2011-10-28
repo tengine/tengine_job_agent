@@ -95,6 +95,20 @@ describe TengineJobAgent::Watchdog do
       subject.should_receive(:fire_heartbeat).at_least(2).times
       subject.detach_and_wait_process(pid)
     end
+
+    context "プロセスは正常に動き続けているがfireに失敗した場合" do
+      it "その回のfireはあきらめる。例外などで死なない" do
+        EM.run do
+          subject.unstub(:fire_heartbeat)
+          s = mock(Tengine::Event::Sender.new)
+          subject.stub(:sender).and_return(s)
+          s.stub(:fire).with("job.heartbeat.tengine", an_instance_of(Hash)).and_raise(Tengine::Event::Sender::RetryError.new(:ev, 30))
+          expect {
+            subject.detach_and_wait_process(pid)
+          }.to_not raise_exception(Tengine::Event::Sender::RetryError)
+        end
+      end
+    end
   end
 
   describe "#fire_finished" do
@@ -153,6 +167,27 @@ describe TengineJobAgent::Watchdog do
         end
         s.stub_chain(:mq_suite, :connection, :close).and_yield
         subject.fire_finished(pid, stat)
+      end
+    end
+
+    context "プロセスは正常に終了したがfireに失敗した場合" do
+      it "fireできるようになるまでリトライを続ける" do
+        EM.run do
+          stat.stub(:exitstatus).and_return(0)
+          s = mock(Tengine::Event::Sender.new)
+          n = 0
+          subject.stub(:sender).and_return(s)
+          s.stub(:fire).with("finished.process.job.tengine", an_instance_of(Hash)) do
+            n += 1
+            if n < 10
+              raise(Tengine::Event::Sender::RetryError.new(:ev, 30))
+            end
+          end
+          s.stub_chain(:mq_suite, :connection, :close).and_yield
+          expect {
+            subject.fire_finished(pid, stat)
+          }.to_not raise_exception(Tengine::Event::Sender::RetryError)
+        end
       end
     end
   end

@@ -91,6 +91,9 @@ class TengineJobAgent::Watchdog
       :properties => event_properties,
     })
     @logger.info("fire_finished complete")
+  rescue Tengine::Event::Sender::RetryError
+    retry # try again
+  else
     EM.next_tick do
       sender.mq_suite.connection.close do
         EM.stop
@@ -114,6 +117,8 @@ class TengineJobAgent::Watchdog
       },
       :keep_connection => true,
     })
+  rescue Tengine::Event::Sender::RetryError
+    # does nothing
   end
 
   def sender
