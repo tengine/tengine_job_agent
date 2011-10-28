@@ -10,3 +10,6 @@ exchange:
   name: 'tengine_event_exchange'
   type: 'direct'
   durable: true
+heartbeat:
+  job:
+    interval: 1
