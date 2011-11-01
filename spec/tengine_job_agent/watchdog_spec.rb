@@ -40,13 +40,6 @@ describe TengineJobAgent::Watchdog do
       subject.stub(:fire_finished).with(pid, stat)
       subject.process
     end
-
-    it "終了ステータスをfireする" do
-      subject.stub(:spawn_process).and_return(pid)
-      subject.stub(:detach_and_wait_process).and_return(stat)
-      subject.should_receive(:fire_finished).with(pid, stat)
-      subject.process
-    end
   end
 
   describe "#spawn_process" do
@@ -73,24 +66,49 @@ describe TengineJobAgent::Watchdog do
 
   describe "#detach_and_wait_process" do
     let(:pid) { mock(Numeric.new) }
-    let(:thr) { mock(Thread.start do Thread.stop end) }
     let(:stat) { mock($?) }
     before do
-      Process.stub(:detach).with(pid).and_return(thr)
-      stat.stub(:exitstatus).and_return(nil)
+      bigzero = (1 << 1024).coerce(0).first
+      stat.stub(:exitstatus).and_return(bigzero)
+      pid.stub(:to_int).and_return(bigzero)
+      n = 0
+      Process.stub(:waitpid2).with(pid, Process::WNOHANG) do
+        n += 1
+        if n % 3 == bigzero
+          [pid, stat]
+        else
+          nil
+        end
+      end
+      subject.stub(:fire_finished) do EM.stop end
+      subject.stub(:fire_heartbeat)
     end
 
     it "pidを待つ" do
-      thr.should_receive(:value).and_return(stat)
+      subject.unstub(:fire_finished)
+      subject.should_receive(:fire_finished) do EM.stop end
       subject.detach_and_wait_process(pid)
     end
 
-    it "pidの終了ステータスを返す" do
-      thr.stub(:value).and_return(stat)
-      subject.detach_and_wait_process(pid).should == stat
+    it "heartbeatをfireしつづける" do
+      subject.unstub(:fire_heartbeat)
+      subject.should_receive(:fire_heartbeat).at_least(2).times
+      subject.detach_and_wait_process(pid)
     end
 
-    it "heartbeatをfireしつづける"
+    context "プロセスは正常に動き続けているがfireに失敗した場合" do
+      it "その回のfireはあきらめる。例外などで死なない" do
+        EM.run do
+          subject.unstub(:fire_heartbeat)
+          s = mock(Tengine::Event::Sender.new)
+          subject.stub(:sender).and_return(s)
+          s.stub(:fire).with("job.heartbeat.tengine", an_instance_of(Hash)).and_raise(Tengine::Event::Sender::RetryError.new(:ev, 30))
+          expect {
+            subject.detach_and_wait_process(pid)
+          }.to_not raise_exception(Tengine::Event::Sender::RetryError)
+        end
+      end
+    end
   end
 
   describe "#fire_finished" do
@@ -108,6 +126,7 @@ describe TengineJobAgent::Watchdog do
         :passive=>false, :durable=>true, :auto_delete=>false, :internal=>false, :nowait=>true)
       conn.stub(:on_tcp_connection_loss)
       conn.stub(:after_recovery)
+      conn.stub(:on_closed)
 
       o = mock(STDOUT)
       e = mock(STDERR)
@@ -150,6 +169,27 @@ describe TengineJobAgent::Watchdog do
         subject.fire_finished(pid, stat)
       end
     end
+
+    context "プロセスは正常に終了したがfireに失敗した場合" do
+      it "fireできるようになるまでリトライを続ける" do
+        EM.run do
+          stat.stub(:exitstatus).and_return(0)
+          s = mock(Tengine::Event::Sender.new)
+          n = 0
+          subject.stub(:sender).and_return(s)
+          s.stub(:fire).with("finished.process.job.tengine", an_instance_of(Hash)) do
+            n += 1
+            if n < 10
+              raise(Tengine::Event::Sender::RetryError.new(:ev, 30))
+            end
+          end
+          s.stub_chain(:mq_suite, :connection, :close).and_yield
+          expect {
+            subject.fire_finished(pid, stat)
+          }.to_not raise_exception(Tengine::Event::Sender::RetryError)
+        end
+      end
+    end
   end
 
   describe "#sender" do
@@ -157,6 +197,7 @@ describe TengineJobAgent::Watchdog do
       conn = mock(:connection)
       conn.stub(:on_tcp_connection_loss)
       conn.stub(:after_recovery)
+      conn.stub(:on_closed)
       AMQP.stub(:connect).with({:user=>"guest", :pass=>"guest", :vhost=>"/",
           :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(conn)
     end

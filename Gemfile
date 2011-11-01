@@ -7,7 +7,7 @@ source "http://rubygems.org"
 # Example:
 #   gem "activesupport", ">= 2.3.5"
 
-gem "tengine_event", "~> 0.2.5"
+gem "tengine_event", "~> 0.2.9"
 
 # Add dependencies to develop your gem here.
 # Include everything needed to run rake, tests, features, etc.

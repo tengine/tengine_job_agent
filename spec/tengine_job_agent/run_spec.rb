@@ -80,8 +80,23 @@ describe TengineJobAgent::Run do
   end
 
   describe "#initialize" do
-    it "第一引数にlogger"
-    it "第二引数は起動するプロセスへの引数の配列"
-    it "第三引数はconfig"
+    it "第一引数にlogger" do
+      watchdog = File.expand_path("../../bin/tengine_job_agent_watchdog", File.dirname(__FILE__))
+      Process.should_receive(:spawn).with(watchdog, an_instance_of(String), anything)
+      subject.spawn_watchdog
+      @log_buffer.string.should_not be_empty
+    end
+
+    it "第二引数は起動するプロセスへの引数の配列" do
+      watchdog = File.expand_path("../../bin/tengine_job_agent_watchdog", File.dirname(__FILE__))
+      Process.should_receive(:spawn).with(watchdog, an_instance_of(String), "scripts/echo_foo.sh")
+      subject.spawn_watchdog
+    end
+
+    it "第三引数はconfig" do
+      subject.stub(:timeout) do |tim|
+        tim.should == @config['timeout']
+      end
+    end
   end
 end
