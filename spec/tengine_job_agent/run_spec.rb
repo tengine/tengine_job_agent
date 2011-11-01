@@ -6,8 +6,9 @@ describe TengineJobAgent::Run do
   before do
     @log_buffer = StringIO.new
     @logger = Logger.new(@log_buffer)
-    @config = YAML.load_file(File.expand_path("../config/tengine_job_agent.yml",
-                                              File.dirname(__FILE__)))
+    config = YAML.load_file(File.expand_path("../config/tengine_job_agent.yml",
+                                             File.dirname(__FILE__)))
+    @config = config.inject({}) {|r, (k, v)| r.update k.intern => v }
   end
 
   subject do
@@ -95,7 +96,7 @@ describe TengineJobAgent::Run do
 
     it "第三引数はconfig" do
       subject.stub(:timeout) do |tim|
-        tim.should == @config['timeout']
+        tim.should == @config[:timeout]
       end
     end
   end
