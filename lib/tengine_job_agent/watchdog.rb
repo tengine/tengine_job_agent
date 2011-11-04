@@ -29,6 +29,7 @@ class TengineJobAgent::Watchdog
             detach_and_wait_process(pid)
           rescue Exception => e
             File.open(@pid_path, "a"){|f| f.puts("[#{e.class.name}] #{e.message}")}
+            @logger.error("[#{e.class.name}] #{e.message}")
             EM.stop
           end
         end
