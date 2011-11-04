@@ -21,9 +21,13 @@ class TengineJobAgent::Watchdog
   def process
     pid, process_status = nil, nil
     with_tmp_outs do |stdout, stderr|
-      pid = spawn_process
-      File.open(@pid_path, "a"){|f| f.puts(pid)} # 起動したPIDを呼び出し元に返す
-      detach_and_wait_process(pid)
+      EM.run do
+        sender.wait_for_connection do
+          pid = spawn_process
+          File.open(@pid_path, "a"){|f| f.puts(pid)} # 起動したPIDを呼び出し元に返す
+          detach_and_wait_process(pid)
+        end
+      end
     end
   end
 
@@ -42,24 +46,14 @@ class TengineJobAgent::Watchdog
     @logger.info("detaching process PID: #{pid}")
     int = @config["heartbeat"]["job"]["interval"]
     if int and int > 0
-      EM.run do
-        EM.add_periodic_timer int do
-          a = Process.waitpid2 pid, Process::WNOHANG
-          if a
-            @logger.info("process finished: " << a[1].exitstatus.inspect)
-            fire_finished(*a)
-          else
-            fire_heartbeat(pid)
-          end
-        end
-      end
-    else
-      p, q = Process.waitpid2 pid
-      @logger.info("process finished: " << q.exitstatus.inspect)
-      EM.run do
-        fire_heartbeat(p, q)
+      EM.add_periodic_timer int do
+        fire_heartbeat pid
       end
     end
+    EM.defer(lambda { Process.waitpid2 pid }, lambda {|a|
+      @logger.info("process finished: " << a[1].exitstatus.inspect)
+      fire_finished(*a)
+    })
   end
 
   def fire_finished(pid, process_status)
@@ -95,11 +89,12 @@ class TengineJobAgent::Watchdog
   rescue Tengine::Event::Sender::RetryError
     retry # try again
   else
-    EM.next_tick do
-      sender.mq_suite.connection.close do
-        EM.stop
+    EM.defer(lambda {
+      until sender.pending_events.empty?
+        sleep 0.1
+        p "baz"
       end
-    end
+    }, lambda { sender.mq_suite.connection.close { EM.stop } } )
   end
 
   def fire_heartbeat pid
