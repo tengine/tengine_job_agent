@@ -31,14 +31,26 @@ describe TengineJobAgent::Watchdog do
       subject.should_receive(:spawn_process).and_return(pid)
       subject.stub(:detach_and_wait_process).with(pid).and_return(stat)
       subject.stub(:fire_finished).with(pid, stat)
-      subject.process
+      sender = mock(:sender)
+      subject.stub(:sender).and_return(sender)
+      sender.stub(:wait_for_connection).and_yield
+      EM.run do
+        EM.add_timer(0.1) { EM.stop }
+        subject.process
+      end
     end
 
     it "子プロセスを待つ" do
       subject.stub(:spawn_process).and_return(pid)
       subject.should_receive(:detach_and_wait_process).and_return(stat)
       subject.stub(:fire_finished).with(pid, stat)
-      subject.process
+      sender = mock(:sender)
+      subject.stub(:sender).and_return(sender)
+      sender.stub(:wait_for_connection).and_yield
+      EM.run do
+        EM.add_timer(0.1) { EM.stop }
+        subject.process
+      end
     end
   end
 
@@ -71,29 +83,28 @@ describe TengineJobAgent::Watchdog do
       bigzero = (1 << 1024).coerce(0).first
       stat.stub(:exitstatus).and_return(bigzero)
       pid.stub(:to_int).and_return(bigzero)
-      n = 0
-      Process.stub(:waitpid2).with(pid, Process::WNOHANG) do
-        n += 1
-        if n % 3 == bigzero
-          [pid, stat]
-        else
-          nil
-        end
+      Process.stub(:waitpid2).with(pid) do
+        sleep 3
+        [pid, stat]
       end
       subject.stub(:fire_finished) do EM.stop end
       subject.stub(:fire_heartbeat)
     end
 
     it "pidを待つ" do
-      subject.unstub(:fire_finished)
-      subject.should_receive(:fire_finished) do EM.stop end
-      subject.detach_and_wait_process(pid)
+      EM.run do
+        subject.unstub(:fire_finished)
+        subject.should_receive(:fire_finished) do EM.stop end
+        subject.detach_and_wait_process(pid)
+      end
     end
 
     it "heartbeatをfireしつづける" do
-      subject.unstub(:fire_heartbeat)
-      subject.should_receive(:fire_heartbeat).at_least(2).times
-      subject.detach_and_wait_process(pid)
+      EM.run do
+        subject.unstub(:fire_heartbeat)
+        subject.should_receive(:fire_heartbeat).at_least(2).times
+        subject.detach_and_wait_process(pid)
+      end
     end
 
     context "プロセスは正常に動き続けているがfireに失敗した場合" do
@@ -127,6 +138,9 @@ describe TengineJobAgent::Watchdog do
       conn.stub(:on_tcp_connection_loss)
       conn.stub(:after_recovery)
       conn.stub(:on_closed)
+      sender = mock(:sender)
+      subject.stub(:sender).and_return(sender)
+      sender.stub(:wait_for_connection).and_yield
 
       o = mock(STDOUT)
       e = mock(STDERR)
@@ -149,8 +163,8 @@ describe TengineJobAgent::Watchdog do
           v[:properties]["pid"].should == pid
           v[:properties]["exit_status"].should == stat.exitstatus
         end
-        s.stub_chain(:mq_suite, :connection, :close).and_yield
         subject.fire_finished(pid, stat)
+        EM.add_timer(0.1) { EM.stop }
       end
     end
 
@@ -167,6 +181,7 @@ describe TengineJobAgent::Watchdog do
         end
         s.stub_chain(:mq_suite, :connection, :close).and_yield
         subject.fire_finished(pid, stat)
+        EM.add_timer(0.1) { EM.stop }
       end
     end
 
@@ -187,6 +202,7 @@ describe TengineJobAgent::Watchdog do
           expect {
             subject.fire_finished(pid, stat)
           }.to_not raise_exception(Tengine::Event::Sender::RetryError)
+        EM.add_timer(0.1) { EM.stop }
         end
       end
     end
