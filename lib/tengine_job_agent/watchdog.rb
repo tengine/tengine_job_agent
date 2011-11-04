@@ -23,9 +23,14 @@ class TengineJobAgent::Watchdog
     with_tmp_outs do |stdout, stderr|
       EM.run do
         sender.wait_for_connection do
-          pid = spawn_process
-          File.open(@pid_path, "a"){|f| f.puts(pid)} # 起動したPIDを呼び出し元に返す
-          detach_and_wait_process(pid)
+          begin
+            pid = spawn_process
+            File.open(@pid_path, "a"){|f| f.puts(pid)} # 起動したPIDを呼び出し元に返す
+            detach_and_wait_process(pid)
+          rescue Exception => e
+            File.open(@pid_path, "a"){|f| f.puts("[#{e.class.name}] #{e.message}")}
+            EM.stop
+          end
         end
       end
     end

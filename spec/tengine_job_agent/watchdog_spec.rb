@@ -2,6 +2,8 @@
 require 'spec_helper'
 require 'amqp'
 
+require 'timeout'
+
 describe TengineJobAgent::Watchdog do
 
   before do
@@ -12,8 +14,9 @@ describe TengineJobAgent::Watchdog do
   end
 
   subject do
+    @pid_path = "/dev/null"
     echo_foo = File.expand_path "../scripts/echo_foo.sh", __FILE__
-    TengineJobAgent::Watchdog.new(@logger, %W"/dev/null #{echo_foo}", @config)
+    TengineJobAgent::Watchdog.new(@logger, [@pid_path, echo_foo], @config)
   end
 
   it { should_not be_nil }
@@ -52,6 +55,44 @@ describe TengineJobAgent::Watchdog do
         subject.process
       end
     end
+
+    context "ファイルへの出力" do
+      before do
+        @echo_foo = File.expand_path "../scripts/echo_foo.sh", __FILE__
+        mock_stdout = mock(:stdout, :path => "/tmp/stdout")
+        mock_stderr = mock(:stderr, :path => "/tmp/stderr")
+        subject.should_receive(:with_tmp_outs).and_yield(mock_stdout, mock_stderr)
+        sender = mock(:sender)
+        subject.stub(:sender).and_return(sender)
+        sender.stub(:wait_for_connection).and_yield
+      end
+
+      it "実行に成功した場合はPIDが出力される" do
+        subject.should_receive(:spawn_process).and_return(pid)
+        mock_pid_file = mock(:pid_file)
+        File.should_receive(:open).with(@pid_path, "a").and_yield(mock_pid_file)
+        mock_pid_file.should_receive(:puts).with(pid)
+        subject.should_receive(:detach_and_wait_process).with(pid)
+        EM.run do
+          EM.add_timer(0.1) { EM.stop }
+          subject.process
+        end
+      end
+
+      it "ファイルが存在せずspawnに失敗した場合、エラーを出力する" do
+        subject.should_receive(:spawn_process).and_raise(Errno::ENOENT.new(@echo_foo))
+        mock_pid_file = mock(:pid_file)
+        File.should_receive(:open).with(@pid_path, "a").and_yield(mock_pid_file)
+        mock_pid_file.should_receive(:puts).with("[Errno::ENOENT] No such file or directory - #{@echo_foo}")
+        timeout(0.5) do
+          EM.run do
+            # EM.add_timer(0.1) { EM.stop } # 起動に失敗したらEMは自動でstopされる
+            subject.process
+          end
+        end
+      end
+    end
+
   end
 
   describe "#spawn_process" do
@@ -73,7 +114,16 @@ describe TengineJobAgent::Watchdog do
       echo_foo = File.expand_path "../scripts/echo_foo.sh", __FILE__
       Process.should_receive(:spawn).with(echo_foo, an_instance_of(Hash)).and_return(pid)
       subject.spawn_process.should == pid
-    end    
+    end
+
+    it "No such file or directoryで失敗する" do
+      echo_foo = File.expand_path "../scripts/echo_foo.sh", __FILE__
+      Process.should_receive(:spawn).with(echo_foo, an_instance_of(Hash)).
+        and_raise(Errno::ENOENT.new(echo_foo))
+      expect {
+        subject.spawn_process
+      }.to raise_error(Errno::ENOENT)
+    end
   end
 
   describe "#detach_and_wait_process" do
