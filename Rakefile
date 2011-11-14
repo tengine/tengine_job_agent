@@ -15,12 +15,12 @@ require 'jeweler'
 Jeweler::Tasks.new do |gem|
   # gem is a Gem::Specification... see http://docs.rubygems.org/read/chapter/20 for more options
   gem.name = "tengine_job_agent"
-  gem.homepage = "http://github.com/akm/tengine_job_agent"
-  gem.license = "MIT"
+  gem.homepage = "http://github.com/tengine/tengine_job_agent"
+  gem.license = "MPL/LGPL"
   gem.summary = %Q{tengine_job_agent invoke job, watches it and notify its finish to tengine server}
   gem.description = %Q{tengine_job_agent works with tengine_job}
-  gem.email = "akima@nautilus-technologies.com"
-  gem.authors = ["akima"]
+  gem.email = "tengine@nautilus-technologies.com"
+  gem.authors = %w[saishu w-irie taigou totty hiroshinakao g-morita guemon aoetk hattori-at-nt t-yamada y-karashima akm]
   # dependencies defined in Gemfile
 end
 Jeweler::RubygemsDotOrgTasks.new

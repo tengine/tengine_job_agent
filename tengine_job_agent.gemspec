@@ -8,13 +8,12 @@ Gem::Specification.new do |s|
   s.version = "0.3.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["akima"]
-  s.date = "2011-11-04"
+  s.authors = ["saishu", "w-irie", "taigou", "totty", "hiroshinakao", "g-morita", "guemon", "aoetk", "hattori-at-nt", "t-yamada", "y-karashima", "akm"]
+  s.date = "2011-11-14"
   s.description = "tengine_job_agent works with tengine_job"
-  s.email = "akima@nautilus-technologies.com"
+  s.email = "tengine@nautilus-technologies.com"
   s.executables = ["tengine_job_agent_kill", "tengine_job_agent_run", "tengine_job_agent_watchdog"]
   s.extra_rdoc_files = [
-    "LICENSE.txt",
     "README.rdoc"
   ]
   s.files = [
@@ -22,7 +21,6 @@ Gem::Specification.new do |s|
     ".rspec",
     "Gemfile",
     "Gemfile.lock",
-    "LICENSE.txt",
     "README.rdoc",
     "Rakefile",
     "VERSION",
@@ -43,8 +41,8 @@ Gem::Specification.new do |s|
     "spec/tengine_job_agent/watchdog_spec.rb",
     "tengine_job_agent.gemspec"
   ]
-  s.homepage = "http://github.com/akm/tengine_job_agent"
-  s.licenses = ["MIT"]
+  s.homepage = "http://github.com/tengine/tengine_job_agent"
+  s.licenses = ["MPL/LGPL"]
   s.require_paths = ["lib"]
   s.rubygems_version = "1.8.11"
   s.summary = "tengine_job_agent invoke job, watches it and notify its finish to tengine server"
