@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = "tengine_job_agent"
-  s.version = "0.3.2"
+  s.version = "0.3.3"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["saishu", "w-irie", "taigou", "totty", "hiroshinakao", "g-morita", "guemon", "aoetk", "hattori-at-nt", "t-yamada", "y-karashima", "akm"]
@@ -32,7 +32,7 @@ Gem::Specification.new do |s|
     "lib/tengine_job_agent/run.rb",
     "lib/tengine_job_agent/watchdog.rb",
     "spec/.gitignore",
-    "spec/config/tengine_job_agent.yml",
+    "spec/config/tengine_job_agent.yml.erb",
     "spec/log/.gitignore",
     "spec/spec_helper.rb",
     "spec/tengine_job_agent/command_utils_spec.rb",
