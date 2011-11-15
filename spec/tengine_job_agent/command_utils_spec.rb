@@ -61,25 +61,40 @@ describe TengineJobAgent::CommandUtils do
       subject { Class.new { include TengineJobAgent::CommandUtils::ClassMethods }.new }
       before { subject.stub(:name).and_return("foobar") }
 
+      it "logfileを指定する場合" do
+        Dir.mktmpdir do |nam|
+          Logger.should_receive(:new).with("foo/bar/baz.log")
+          subject.new_logger('logfile' => "foo/bar/baz.log")
+        end
+      end
+
+      it "logfileもlog_dirも指定する場合" do
+        Dir.mktmpdir do |nam|
+          Logger.should_receive(:new).with(/\/foobar-\d+?.log$/)
+          subject.new_logger({})
+        end
+      end
+
       it "Loggerを返す" do
         Dir.mktmpdir do |nam|
-          subject.new_logger(nam).should be_kind_of(Logger)
+          subject.new_logger('log_dir' => nam).should be_kind_of(Logger)
         end
       end
 
       it "引数はディレクトリである" do
         Tempfile.new("") do |f|
-          subject.new_logger("nonexistent").should raise_exception(Errno::ENOENT)
-          subject.new_logger(f.path).should raise_exception(Errno::ENOENT)
+          subject.new_logger('log_dir' => "nonexistent").should raise_exception(Errno::ENOENT)
+          subject.new_logger('log_dir' => f.path).should raise_exception(Errno::ENOENT)
         end
       end
 
       it "ログファイルは引数のディレクトリの中にできる" do
         Dir.mktmpdir do |nam|
-          subject.new_logger(nam)
+          subject.new_logger('log_dir' => nam)
           nam.should have_at_least(3).files
         end
       end
+
     end
 
     describe "#process" do

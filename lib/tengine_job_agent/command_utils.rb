@@ -16,7 +16,7 @@ module TengineJobAgent::CommandUtils
 
     def process(*args)
       config = load_config
-      logger = new_logger(config['log_dir'])
+      logger = new_logger(config)
       begin
         return new(logger, args, config).process
       rescue Exception => e
@@ -25,9 +25,14 @@ module TengineJobAgent::CommandUtils
       end
     end
 
-    def new_logger(log_dir)
-      prefix = self.name.split('::').last.downcase
-      Logger.new(File.expand_path("#{prefix}-#{Process.pid}.log", log_dir))
+    def new_logger(config)
+      logfile = config['logfile']
+      unless logfile
+        prefix = self.name.split('::').last.downcase
+        logfile = File.expand_path("#{prefix}-#{Process.pid}.log", config['log_dir'])
+      end
+      Logger.new(logfile)
     end
+
   end
 end
