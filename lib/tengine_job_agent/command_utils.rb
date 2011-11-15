@@ -1,6 +1,7 @@
 require 'tengine_job_agent'
-require 'yaml'
 require 'logger'
+require 'yaml'
+require 'tengine/support/yaml_with_erb'
 
 module TengineJobAgent::CommandUtils
   def self.included(mod)
