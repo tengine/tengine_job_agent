@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "tengine_job_agent"
-  s.version = "0.3.1"
+  s.version = "0.3.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["saishu", "w-irie", "taigou", "totty", "hiroshinakao", "g-morita", "guemon", "aoetk", "hattori-at-nt", "t-yamada", "y-karashima", "akm"]
-  s.date = "2011-11-14"
+  s.date = "2011-11-15"
   s.description = "tengine_job_agent works with tengine_job"
   s.email = "tengine@nautilus-technologies.com"
   s.executables = ["tengine_job_agent_kill", "tengine_job_agent_run", "tengine_job_agent_watchdog"]
@@ -31,6 +31,7 @@ Gem::Specification.new do |s|
     "lib/tengine_job_agent/command_utils.rb",
     "lib/tengine_job_agent/run.rb",
     "lib/tengine_job_agent/watchdog.rb",
+    "spec/.gitignore",
     "spec/config/tengine_job_agent.yml",
     "spec/log/.gitignore",
     "spec/spec_helper.rb",
@@ -51,6 +52,7 @@ Gem::Specification.new do |s|
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
+      s.add_runtime_dependency(%q<tengine_support>, ["~> 0.3.0"])
       s.add_runtime_dependency(%q<tengine_event>, ["~> 0.3.0"])
       s.add_development_dependency(%q<rspec>, ["~> 2.6.0"])
       s.add_development_dependency(%q<yard>, ["~> 0.7.2"])
@@ -58,7 +60,9 @@ Gem::Specification.new do |s|
       s.add_development_dependency(%q<jeweler>, ["~> 1.6.4"])
       s.add_development_dependency(%q<simplecov>, ["~> 0.5.3"])
       s.add_development_dependency(%q<ZenTest>, ["~> 4.6.2"])
+      s.add_development_dependency(%q<ci_reporter>, ["~> 1.6.5"])
     else
+      s.add_dependency(%q<tengine_support>, ["~> 0.3.0"])
       s.add_dependency(%q<tengine_event>, ["~> 0.3.0"])
       s.add_dependency(%q<rspec>, ["~> 2.6.0"])
       s.add_dependency(%q<yard>, ["~> 0.7.2"])
@@ -66,8 +70,10 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<jeweler>, ["~> 1.6.4"])
       s.add_dependency(%q<simplecov>, ["~> 0.5.3"])
       s.add_dependency(%q<ZenTest>, ["~> 4.6.2"])
+      s.add_dependency(%q<ci_reporter>, ["~> 1.6.5"])
     end
   else
+    s.add_dependency(%q<tengine_support>, ["~> 0.3.0"])
     s.add_dependency(%q<tengine_event>, ["~> 0.3.0"])
     s.add_dependency(%q<rspec>, ["~> 2.6.0"])
     s.add_dependency(%q<yard>, ["~> 0.7.2"])
@@ -75,6 +81,7 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<jeweler>, ["~> 1.6.4"])
     s.add_dependency(%q<simplecov>, ["~> 0.5.3"])
     s.add_dependency(%q<ZenTest>, ["~> 4.6.2"])
+    s.add_dependency(%q<ci_reporter>, ["~> 1.6.5"])
   end
 end
 
