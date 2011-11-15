@@ -4,12 +4,15 @@ require 'amqp'
 
 require 'timeout'
 
+require 'yaml'
+require 'tengine/support/yaml_with_erb'
+
 describe TengineJobAgent::Watchdog do
 
   before do
     @log_buffer = StringIO.new
     @logger = Logger.new(@log_buffer)
-    @config = YAML.load_file(File.expand_path("../config/tengine_job_agent.yml",
+    @config = YAML.load_file(File.expand_path("../config/tengine_job_agent.yml.erb",
                                               File.dirname(__FILE__)))
   end
 

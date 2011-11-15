@@ -10,7 +10,7 @@ module TengineJobAgent::CommandUtils
 
   module ClassMethods
     def load_config
-      config_path = Dir["{.,./config,/etc}/tengine_job_agent.yml"].first
+      config_path = Dir["{.,./config,/etc}/tengine_job_agent{.yml,.yml.erb}"].first
       YAML.load_file(config_path)
     end
 

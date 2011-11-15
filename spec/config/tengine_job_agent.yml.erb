@@ -1,5 +1,7 @@
+---
 timeout: 1
-log_dir: "log"
+# log_dir: "log"
+logfile: "<%= %!log/#{File.basename($PROGRAM_NAME)}-#{Process.pid}.log! %>"
 connection:
   host: 'localhost'
   port: 5672
