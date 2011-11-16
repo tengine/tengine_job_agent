@@ -92,15 +92,7 @@ class TengineJobAgent::Watchdog
       :properties => event_properties,
     })
     @logger.info("fire_finished complete")
-  rescue Tengine::Event::Sender::RetryError
-    retry # try again
-  else
-    EM.defer(lambda {
-      until sender.pending_events.empty?
-        sleep 0.1
-        p "baz"
-      end
-    }, lambda { sender.mq_suite.connection.close { EM.stop } } )
+    sender.stop
   end
 
   def fire_heartbeat pid
@@ -118,9 +110,8 @@ class TengineJobAgent::Watchdog
         "command"   => [@program, @args].flatten.join(" "),
       },
       :keep_connection => true,
+      :retry_count => 0,
     })
-  rescue Tengine::Event::Sender::RetryError
-    # does nothing
   end
 
   def sender
