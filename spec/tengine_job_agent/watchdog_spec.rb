@@ -113,7 +113,10 @@ describe TengineJobAgent::Watchdog do
           subject.unstub(:fire_heartbeat)
           s = mock(Tengine::Event::Sender.new)
           subject.stub(:sender).and_return(s)
-          s.stub(:fire).with("job.heartbeat.tengine", an_instance_of(Hash)).and_raise(Tengine::Event::Sender::RetryError.new(:ev, 30))
+          s.stub(:fire).with("job.heartbeat.tengine", an_instance_of(Hash)) do |e, h|
+            h[:retry_count].should_not be_nil
+            h[:retry_count].should be_zero
+          end
           expect {
             subject.detach_and_wait_process(pid)
           }.to_not raise_exception(Tengine::Event::Sender::RetryError)
@@ -130,8 +133,7 @@ describe TengineJobAgent::Watchdog do
       conn  = mock(:connection)
       ch    = Object.new
 
-      AMQP.stub(:connect).with({:user=>"guest", :pass=>"guest", :vhost=>"/",
-          :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(conn)
+      AMQP.stub(:connect).with(an_instance_of(Hash)).and_return(conn)
       AMQP::Channel.stub(:new).with(conn, :prefetch => 1, :auto_recovery => true).and_return(ch)
       AMQP::Exchange.stub(:new).with(ch, "direct", "exchange1",
         :passive=>false, :durable=>true, :auto_delete=>false, :internal=>false, :nowait=>true)
@@ -157,6 +159,7 @@ describe TengineJobAgent::Watchdog do
         stat.stub(:exitstatus).and_return(0)
         s = mock(Tengine::Event::Sender.new)
         subject.stub(:sender).and_return s
+        s.stub(:stop)
         s.should_receive(:fire) do |k, v|
           k.should == "finished.process.job.tengine"
           v[:level_key].should == :info
@@ -174,12 +177,12 @@ describe TengineJobAgent::Watchdog do
         stat.stub(:exitstatus).and_return(256)
         s = mock(Tengine::Event::Sender.new)
         subject.stub(:sender).and_return s
+        s.stub(:stop)
         s.should_receive(:fire) do |k, v|
           k.should == "finished.process.job.tengine"
           v[:level_key].should == :error
           v[:properties][:message].should =~ /^Job process failed./
         end
-        s.stub_chain(:mq_suite, :connection, :close).and_yield
         subject.fire_finished(pid, stat)
         EM.add_timer(0.1) { EM.stop }
       end
@@ -192,17 +195,16 @@ describe TengineJobAgent::Watchdog do
           s = mock(Tengine::Event::Sender.new)
           n = 0
           subject.stub(:sender).and_return(s)
-          s.stub(:fire).with("finished.process.job.tengine", an_instance_of(Hash)) do
-            n += 1
-            if n < 10
-              raise(Tengine::Event::Sender::RetryError.new(:ev, 30))
+          s.stub(:stop)
+          s.stub(:fire).with("finished.process.job.tengine", an_instance_of(Hash)) do |e, h|
+            if h[:retry_count]
+                h[:retry_count].should > 0
             end
           end
-          s.stub_chain(:mq_suite, :connection, :close).and_yield
           expect {
             subject.fire_finished(pid, stat)
           }.to_not raise_exception(Tengine::Event::Sender::RetryError)
-        EM.add_timer(0.1) { EM.stop }
+          EM.add_timer(0.1) { EM.stop }
         end
       end
     end
@@ -214,8 +216,7 @@ describe TengineJobAgent::Watchdog do
       conn.stub(:on_tcp_connection_loss)
       conn.stub(:after_recovery)
       conn.stub(:on_closed)
-      AMQP.stub(:connect).with({:user=>"guest", :pass=>"guest", :vhost=>"/",
-          :logging=>false, :insist=>false, :host=>"localhost", :port=>5672}).and_return(conn)
+      AMQP.stub(:connect).with(an_instance_of(Hash)).and_return(conn)
     end
     subject { TengineJobAgent::Watchdog.new(@logger, %w"", @config).sender }
     it { should be_kind_of(Tengine::Event::Sender) }
