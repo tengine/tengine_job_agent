@@ -52,6 +52,7 @@ class TengineJobAgent::Watchdog
     @logger.info("detaching process PID: #{pid}")
     int = @config["heartbeat"]["job"]["interval"]
     if int and int > 0
+      fire_heartbeat pid
       EM.add_periodic_timer int do
         fire_heartbeat pid
       end
@@ -112,6 +113,7 @@ class TengineJobAgent::Watchdog
       :keep_connection => true,
       :retry_count => 0,
     })
+    @logger.debug("fire_heartbeat #{pid}")
   end
 
   def sender
