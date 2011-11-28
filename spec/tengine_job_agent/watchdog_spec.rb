@@ -160,6 +160,15 @@ describe TengineJobAgent::Watchdog do
       end
     end
 
+    it "https://www.pivotaltracker.com/story/show/21515847" do
+      EM.run do
+        subject.instance_eval { @config["heartbeat"]["job"]["interval"] = 0 }
+        subject.unstub(:fire_heartbeat)
+        subject.should_receive(:fire_heartbeat).at_least(1).times
+        subject.detach_and_wait_process(pid)
+      end
+    end
+
     context "プロセスは正常に動き続けているがfireに失敗した場合" do
       it "その回のfireはあきらめる。例外などで死なない" do
         EM.run do
