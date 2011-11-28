@@ -176,6 +176,24 @@ describe TengineJobAgent::Watchdog do
         end
       end
     end
+
+    context "finishしたときのtimerの挙動" do
+      def live_timers_count
+        # これはひどい...
+        ObjectSpace.each_object(EM::PeriodicTimer).reject do |i|
+          i.instance_eval do
+            @cancelled
+          end
+        end
+      end
+      it "https://www.pivotaltracker.com/story/show/21466285" do
+        n = live_timers_count
+        EM.run do
+          subject.detach_and_wait_process(pid)
+        end
+        live_timers_count.should == n
+      end
+    end
   end
 
   describe "#fire_finished" do
