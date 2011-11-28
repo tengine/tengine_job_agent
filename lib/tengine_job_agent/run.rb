@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 require 'tengine_job_agent'
 require 'timeout'
+require 'rbconfig'
+
 class TengineJobAgent::Run
   include TengineJobAgent::CommandUtils
 
@@ -16,6 +18,7 @@ class TengineJobAgent::Run
   end
 
   def process
+    validate_environment
     line = nil
     process_spawned = false
     begin
@@ -54,9 +57,18 @@ class TengineJobAgent::Run
     args = @args # + [{:out => stdout_w}] #, :err => stderr_w}]
     watchdog = File.expand_path("../../bin/tengine_job_agent_watchdog", File.dirname(__FILE__))
     @logger.info("spawning watchdog: #{@pid_path}")
-    pid = Process.spawn(watchdog, @pid_path, *args)
+    pid = Process.spawn(RbConfig.ruby, watchdog, @pid_path, *args)
     @logger.info("spawned watchdog: #{pid}")
     return pid
+  end
+
+  # ジョブ実行時に使用されるRubyが1.8系の場合でもtengine_job_agent_runがエラーを起こさない
+  def validate_environment
+    if RUBY_VERSION >= "1.9.2"
+      @logger.info("RUBY_VERSION is #{RUBY_VERSION}")
+    else
+      raise "RUBY_VERSION must be >= 1.9.2 but was #{RUBY_VERSION}"
+    end
   end
 
 end
