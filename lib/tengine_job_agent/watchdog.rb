@@ -50,15 +50,17 @@ class TengineJobAgent::Watchdog
 
   def detach_and_wait_process(pid)
     @logger.info("detaching process PID: #{pid}")
+    timer = nil
     int = @config["heartbeat"]["job"]["interval"]
     if int and int > 0
       fire_heartbeat pid
-      EM.add_periodic_timer int do
+      timer = EM.add_periodic_timer int do
         fire_heartbeat pid
       end
     end
     EM.defer(lambda { Process.waitpid2 pid }, lambda {|a|
       @logger.info("process finished: " << a[1].exitstatus.inspect)
+      EM.cancel_timer timer if timer
       fire_finished(*a)
     })
   end
