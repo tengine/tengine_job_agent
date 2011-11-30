@@ -141,12 +141,11 @@ describe TengineJobAgent::Watchdog do
         [pid, stat]
       end
       subject.stub(:fire_finished) do EM.stop end
-      subject.stub(:fire_heartbeat)
+      subject.stub(:fire_heartbeat).with(pid).and_yield
     end
 
     it "pidを待つ" do
       EM.run do
-        subject.unstub(:fire_finished)
         subject.should_receive(:fire_finished) do EM.stop end
         subject.detach_and_wait_process(pid)
       end
@@ -154,8 +153,16 @@ describe TengineJobAgent::Watchdog do
 
     it "heartbeatをfireしつづける" do
       EM.run do
+        subject.should_receive(:fire_heartbeat).at_least(2).times.and_yield
+        subject.detach_and_wait_process(pid)
+      end
+    end
+
+    it "https://www.pivotaltracker.com/story/show/21515847" do
+      EM.run do
+        subject.instance_eval { @config["heartbeat"]["job"]["interval"] = 0 }
         subject.unstub(:fire_heartbeat)
-        subject.should_receive(:fire_heartbeat).at_least(2).times
+        subject.should_receive(:fire_heartbeat).at_least(1).times.and_yield
         subject.detach_and_wait_process(pid)
       end
     end
@@ -166,14 +173,33 @@ describe TengineJobAgent::Watchdog do
           subject.unstub(:fire_heartbeat)
           s = mock(Tengine::Event::Sender.new)
           subject.stub(:sender).and_return(s)
-          s.stub(:fire).with("job.heartbeat.tengine", an_instance_of(Hash)) do |e, h|
-            h[:retry_count].should_not be_nil
-            h[:retry_count].should be_zero
+          def s.fire e, h, &b
+            h[:retry_count].should_not == nil
+            h[:retry_count].should == 0
+            b.yield if b
           end
           expect {
             subject.detach_and_wait_process(pid)
           }.to_not raise_exception(Tengine::Event::Sender::RetryError)
         end
+      end
+    end
+
+    context "finishしたときのtimerの挙動" do
+      def live_timers_count
+        # これはひどい...
+        ObjectSpace.each_object(EM::PeriodicTimer).reject do |i|
+          i.instance_eval do
+            @cancelled
+          end
+        end
+      end
+      it "https://www.pivotaltracker.com/story/show/21466285" do
+        n = live_timers_count
+        EM.run do
+          subject.detach_and_wait_process(pid)
+        end
+        live_timers_count.should == n
       end
     end
   end

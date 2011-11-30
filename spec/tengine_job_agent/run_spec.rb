@@ -3,6 +3,7 @@ require 'spec_helper'
 
 require 'yaml'
 require 'tengine/support/yaml_with_erb'
+require 'rbconfig'
 
 describe TengineJobAgent::Run do
 
@@ -64,18 +65,18 @@ describe TengineJobAgent::Run do
   describe "#spawn_watchdog" do
     it "tengine_job_agent_watchdogを起動する" do
       watchdog = File.expand_path("../../bin/tengine_job_agent_watchdog", File.dirname(__FILE__))
-      Process.should_receive(:spawn).with(watchdog, an_instance_of(String), anything)
+      Process.should_receive(:spawn).with(RbConfig.ruby, watchdog, an_instance_of(String), anything)
       subject.spawn_watchdog
     end
 
     it "pidを返す" do
       pid = mock(Numeric.new)
-      Process.stub(:spawn).with(anything, anything, anything).and_return(pid)
+      Process.stub(:spawn).with(RbConfig.ruby, anything, anything, anything).and_return(pid)
       subject.spawn_watchdog.should == pid
     end
 
     it "終了を待たない" do
-      Process.stub(:spawn).with(anything, anything, anything)
+      Process.stub(:spawn).with(RbConfig.ruby, anything, anything, anything)
       Process.should_not_receive :wait
       Process.should_not_receive :waitpid
       Process.should_not_receive :waitpid2
@@ -86,14 +87,14 @@ describe TengineJobAgent::Run do
   describe "#initialize" do
     it "第一引数にlogger" do
       watchdog = File.expand_path("../../bin/tengine_job_agent_watchdog", File.dirname(__FILE__))
-      Process.should_receive(:spawn).with(watchdog, an_instance_of(String), anything)
+      Process.should_receive(:spawn).with(RbConfig.ruby, watchdog, an_instance_of(String), anything)
       subject.spawn_watchdog
       @log_buffer.string.should_not be_empty
     end
 
     it "第二引数は起動するプロセスへの引数の配列" do
       watchdog = File.expand_path("../../bin/tengine_job_agent_watchdog", File.dirname(__FILE__))
-      Process.should_receive(:spawn).with(watchdog, an_instance_of(String), "scripts/echo_foo.sh")
+      Process.should_receive(:spawn).with(RbConfig.ruby, watchdog, an_instance_of(String), "scripts/echo_foo.sh")
       subject.spawn_watchdog
     end
 

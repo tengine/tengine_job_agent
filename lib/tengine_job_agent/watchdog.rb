@@ -50,17 +50,20 @@ class TengineJobAgent::Watchdog
 
   def detach_and_wait_process(pid)
     @logger.info("detaching process PID: #{pid}")
-    int = @config["heartbeat"]["job"]["interval"]
-    if int and int > 0
-      fire_heartbeat pid
-      EM.add_periodic_timer int do
-        fire_heartbeat pid
+    fire_heartbeat pid do
+      timer = nil
+      int = @config["heartbeat"]["job"]["interval"]
+      if int and int > 0
+        timer = EM.add_periodic_timer int do
+          fire_heartbeat pid do end # <- rspecを黙らせるための無駄なブロック
+        end
       end
+      EM.defer(lambda { Process.waitpid2 pid }, lambda {|a|
+        @logger.info("process finished: " << a[1].exitstatus.inspect)
+        EM.cancel_timer timer if timer
+        fire_finished(*a)
+      })
     end
-    EM.defer(lambda { Process.waitpid2 pid }, lambda {|a|
-      @logger.info("process finished: " << a[1].exitstatus.inspect)
-      fire_finished(*a)
-    })
   end
 
   def fire_finished(pid, process_status)
@@ -96,7 +99,7 @@ class TengineJobAgent::Watchdog
     sender.stop
   end
 
-  def fire_heartbeat pid
+  def fire_heartbeat pid, &block
     sender.fire("job.heartbeat.tengine", {
       :key => @uuid,
       :level_key => :debug,
@@ -112,7 +115,7 @@ class TengineJobAgent::Watchdog
       },
       :keep_connection => true,
       :retry_count => 0,
-    })
+    }, &block)
     @logger.debug("fire_heartbeat #{pid}")
   end
 
