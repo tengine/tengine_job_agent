@@ -235,6 +235,7 @@ describe TengineJobAgent::Watchdog do
 
     it "finished.process.job.tengineをfire" do
       EM.run do
+        FileUtils.stub(:cp).with(an_instance_of(String), an_instance_of(String))
         stat.stub(:exitstatus).and_return(0)
         s = mock(Tengine::Event::Sender.new)
         subject.stub(:sender).and_return s
