@@ -82,7 +82,7 @@ class TengineJobAgent::Watchdog
     user_stdout_path = output_filepath("stdout", pid)
     user_stderr_path = output_filepath("stderr", pid)
     FileUtils.cp(@stdout.path, user_stdout_path)
-    FileUtils.cp(@stdout.path, user_stderr_path)
+    FileUtils.cp(@stderr.path, user_stderr_path)
     event_properties[:stdout_log] = user_stdout_path
     event_properties[:stderr_log] = user_stderr_path
     if level_key == :error
