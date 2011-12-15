@@ -8,7 +8,7 @@ source "http://rubygems.org"
 #   gem "activesupport", ">= 2.3.5"
 
 gem "tengine_support", "~> 0.3.0"
-gem "tengine_event", "~> 0.4.0.eventTNG"
+gem "tengine_event", "~> 0.4.0"
 
 # Add dependencies to develop your gem here.
 # Include everything needed to run rake, tests, features, etc.
