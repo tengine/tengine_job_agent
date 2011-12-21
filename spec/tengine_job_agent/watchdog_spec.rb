@@ -38,6 +38,7 @@ describe TengineJobAgent::Watchdog do
       subject.stub(:detach_and_wait_process).with(pid).and_return(stat)
       subject.stub(:fire_finished).with(pid, stat)
       sender = mock(:sender)
+      sender.stub_chain(:mq_suite, :ensures).with(:connection).and_yield
       subject.stub(:sender).and_return(sender)
       sender.stub(:wait_for_connection).and_yield
       EM.run do
@@ -51,6 +52,7 @@ describe TengineJobAgent::Watchdog do
       subject.should_receive(:detach_and_wait_process).and_return(stat)
       subject.stub(:fire_finished).with(pid, stat)
       sender = mock(:sender)
+      sender.stub_chain(:mq_suite, :ensures).with(:connection).and_yield
       subject.stub(:sender).and_return(sender)
       sender.stub(:wait_for_connection).and_yield
       EM.run do
@@ -66,6 +68,7 @@ describe TengineJobAgent::Watchdog do
         mock_stderr = mock(:stderr, :path => "/tmp/stderr")
         subject.should_receive(:with_tmp_outs).and_yield(mock_stdout, mock_stderr)
         sender = mock(:sender)
+        sender.stub_chain(:mq_suite, :ensures).with(:connection).and_yield
         subject.stub(:sender).and_return(sender)
         sender.stub(:wait_for_connection).and_yield
       end
