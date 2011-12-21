@@ -13,7 +13,7 @@ class TengineJobAgent::Watchdog
   def initialize(logger, args, config = {})
     @uuid = UUID.new.generate
     @logger = logger
-    @pid_output = config[:pid_output] || STDOUT
+    @pid_output = config['pid_output'] || STDOUT
     @pid_path, @program, *@args = *args
     @config = config
   end
@@ -135,7 +135,7 @@ class TengineJobAgent::Watchdog
   end
 
   def output_filepath(prefix, pid)
-    File.expand_path("#{prefix}-#{pid}.log", @config[:log_dir])
+    File.expand_path("#{prefix}-#{pid}.log", @config['log_dir'])
   end
 
   def with_tmp_outs
