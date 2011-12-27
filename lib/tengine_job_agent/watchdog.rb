@@ -88,7 +88,10 @@ class TengineJobAgent::Watchdog
     event_properties[:stdout_log] = user_stdout_path
     event_properties[:stderr_log] = user_stderr_path
     if level_key == :error
-      event_properties[:message] = "Job process failed. STDOUT and STDERR were redirected to files. You can see them at #{user_stdout_path} and #{user_stderr_path} on the server #{ENV['MM_SERVER_NAME']}"
+      event_properties[:message] =
+        "Job process failed. STDOUT and STDERR were redirected to files.\n" <<
+        "You can see them at '#{user_stdout_path}' and '#{user_stderr_path}'\n" <<
+        "on the server '#{ENV['MM_SERVER_NAME']}'"
     end
     sender.fire("finished.process.job.tengine", {
       :key => @uuid,
