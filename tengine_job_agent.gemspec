@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "tengine_job_agent"
-  s.version = "0.3.16"
+  s.version = "0.3.17"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["saishu", "w-irie", "taigou", "totty", "hiroshinakao", "g-morita", "guemon", "aoetk", "hattori-at-nt", "t-yamada", "y-karashima", "akm"]
-  s.date = "2012-02-06"
+  s.authors = ["taigou", "totty", "g-morita", "shyouhei", "akm"]
+  s.date = "2012-02-09"
   s.description = "tengine_job_agent works with tengine_job"
   s.email = "tengine@nautilus-technologies.com"
   s.executables = ["tengine_job_agent_kill", "tengine_job_agent_run", "tengine_job_agent_watchdog"]
@@ -43,9 +43,9 @@ Gem::Specification.new do |s|
     "tengine_job_agent.gemspec"
   ]
   s.homepage = "http://github.com/tengine/tengine_job_agent"
-  s.licenses = ["MPL/LGPL"]
+  s.licenses = ["MPL2.0/LGPLv3"]
   s.require_paths = ["lib"]
-  s.rubygems_version = "1.8.10"
+  s.rubygems_version = "1.8.12"
   s.summary = "tengine_job_agent invoke job, watches it and notify its finish to tengine server"
 
   if s.respond_to? :specification_version then
