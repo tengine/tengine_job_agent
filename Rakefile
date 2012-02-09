@@ -16,7 +16,7 @@ Jeweler::Tasks.new do |gem|
   # gem is a Gem::Specification... see http://docs.rubygems.org/read/chapter/20 for more options
   gem.name = "tengine_job_agent"
   gem.homepage = "http://github.com/tengine/tengine_job_agent"
-  gem.license = "MPL/LGPL"
+  gem.license = "MPL2.0/LGPLv3"
   gem.summary = %Q{tengine_job_agent invoke job, watches it and notify its finish to tengine server}
   gem.description = %Q{tengine_job_agent works with tengine_job}
   gem.email = "tengine@nautilus-technologies.com"
