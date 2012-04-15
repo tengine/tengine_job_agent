@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.authors = ["taigou", "totty", "g-morita", "shyouhei", "akm"]
   s.date = "2012-02-09"
   s.description = "tengine_job_agent works with tengine_job"
-  s.email = "tengine@nautilus-technologies.com"
+  s.email = "tengine-info@groovenauts.jp"
   s.executables = ["tengine_job_agent_kill", "tengine_job_agent_run", "tengine_job_agent_watchdog"]
   s.extra_rdoc_files = [
     "README.rdoc"

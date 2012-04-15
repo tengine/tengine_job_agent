@@ -19,7 +19,7 @@ Jeweler::Tasks.new do |gem|
   gem.license = "MPL2.0/LGPLv3"
   gem.summary = %Q{tengine_job_agent invoke job, watches it and notify its finish to tengine server}
   gem.description = %Q{tengine_job_agent works with tengine_job}
-  gem.email = "tengine@nautilus-technologies.com"
+  gem.email = "tengine-info@groovenauts.jp"
   gem.authors = %w[taigou totty g-morita shyouhei akm]
   # dependencies defined in Gemfile
 end
